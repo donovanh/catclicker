@@ -5,11 +5,15 @@ body {
   font-family: monospace; }
 
 .container {
-  width: 400px;
-  margin: 2em auto;
+  width: 800px;
+  margin: 2em auto; }
+
+.cat {
+  display: inline-block;
+  width: 396px;
   position: relative; }
 
-#cat, #reset {
+img, p {
   cursor: pointer; }
 
 .counter {
@@ -20,8 +24,8 @@ body {
   text-shadow: 0 0 14px rgba(0, 0, 0, 0.5);
   font-size: 8em;
   position: absolute;
-  left: 10px;
-  bottom: 10px; }
+  right: 20px;
+  bottom: 20px; }
 
 pre {
   max-width: 800px;
