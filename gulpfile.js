@@ -32,7 +32,7 @@ gulp.task('styles', function() {
 });
 
 gulp.task('scripts', function() {
-  return gulp.src(['./src/javascripts/**/*.js'])
+  return gulp.src(['./src/javascripts/*.js'])
     //.pipe(jshint('.jshintrc'))
     //.pipe(jshint.reporter('default'))
     .pipe(plumber())
@@ -41,6 +41,13 @@ gulp.task('scripts', function() {
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
     .pipe(gulp.dest('public/javascripts'))
+    .pipe(browserSync.reload({stream:true}));
+});
+
+gulp.task('vendor-scripts', function() {
+  return gulp.src(['./src/javascripts/vendor/*.js'])
+    .pipe(plumber())
+    .pipe(gulp.dest('public/javascripts/vendor'))
     .pipe(browserSync.reload({stream:true}));
 });
 
@@ -85,10 +92,11 @@ gulp.task('watch', function() {
   gulp.watch('src/sass/**/*.scss', ['styles', browserSync.reload]);
   // Watch .js files
   gulp.watch('src/javascripts/*.js', ['scripts', browserSync.reload]);
+  gulp.watch('src/javascripts/vendor/*.js', ['vendor-scripts', browserSync.reload]);
   // Watch image files
   gulp.watch('src/images/**/*', ['images', browserSync.reload]);
 });
 
 gulp.task('default', function() {
-    gulp.start('styles', 'scripts', 'images', 'html', 'browser-sync', 'watch');
+    gulp.start('styles', 'scripts', 'vendor-scripts', 'images', 'html', 'browser-sync', 'watch');
 });
