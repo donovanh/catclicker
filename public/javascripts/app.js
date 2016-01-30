@@ -35,9 +35,6 @@ var catClicker = function() {
     var counter = document.getElementById('counter');
     counter.textContent = clicks;
   }
-  this.resetCounter = function() {
-
-  }
 }
 
 // Instantiate the new CatClicker and initialise

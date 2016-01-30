@@ -10,7 +10,7 @@
 <body>
   <div class="container">
     <h1>Click the cat</h1>
-    <img id="cat" src="/images/kitten.jpg" width="400">
+    <img id="cat" src="./images/kitten.jpg" width="400">
     <p id="counter" class="counter">0</p>
     <p id="reset">Reset</p>
   </div>
@@ -52,15 +52,12 @@ var catClicker = function() {
     var counter = document.getElementById('counter');
     counter.textContent = clicks;
   }
-  this.resetCounter = function() {
-
-  }
 }
 
 // Instantiate the new CatClicker and initialise
 var cat = new catClicker();
 cat.init();
 </pre>
-  <script src="/javascripts/app.js"></script>
+  <script src="./javascripts/app.js"></script>
 </body>
 </html>
