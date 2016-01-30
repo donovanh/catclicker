@@ -13,6 +13,94 @@
     <div id="cats"></div>
   </div>
 <pre>
+// Requirements updated:
+/*
+  - Set it up to handle 2 cats
+  - Each with their own name
+  - Counting their clicks independently
+*/
+// A catClicker class
+var catClicker = function(settings) {
+  // Initiate some defaults, overridden by the settings object
+  var cat = this;
+  cat.clicks = 0;
+  cat.uniqueID = '';
+  cat.settings = settings || {
+    name: 'No Name :`(',
+    image: 'https://placeimg.com/640/480/animals'
+  };
+  cat.compileTemplate = function(id) {
+    var source = document.getElementById(id).innerHTML;
+    return Handlebars.compile(source);
+  }
+  cat.compiledTemplate = cat.compileTemplate('cat-template');
+  cat.init = function() {
+    // Set up a local stored value for the individual cat
+    // Generate a unique ID for it first
+    var catName = cat.settings.name;
+    var catImage = cat.settings.image;
+    // For sake of experimenting, start with a number betwee 1 and a large number
+    var uniqueID = 'cat-' + Math.ceil(Math.random() * 100000000);
+    cat.uniqueID = uniqueID;
+    if (localStorage.getItem(catName) === null) {
+      // Initiate the clicker
+      localStorage.setItem(catName, 0);
+    } else {
+      // Update the visible counter
+      cat.clicks = localStorage.getItem(catName);
+    }
+    // Display the template
+    var currentClicks = cat.clicks;
+    cat.displayTemplate('cats', {uniqueID, catName, catImage, currentClicks});
+    // Attach a listener
+    cat.updateVisibleTotal(uniqueID);
+    setTimeout(function() {
+      cat.attachClickListener(uniqueID);
+      cat.attachResetListener(uniqueID);
+    }, 0);
+  }
+  cat.displayTemplate = function(containerID, params) {
+    var catTemplate = cat.compiledTemplate;
+    var catHTML = catTemplate(params);
+    document.getElementById(containerID).innerHTML += catHTML;
+  }
+  cat.attachClickListener = function(uniqueID) {
+    var catImage = document.getElementById('image-' + uniqueID);
+    console.log('Attaching ', catImage);
+    catImage.addEventListener('click', cat.updateClicks, false);
+  }
+  cat.updateClicks = function() {
+    cat.clicks++;
+    cat.setClickTotal(cat.clicks);
+    cat.updateVisibleTotal(cat.uniqueID);
+  }
+  cat.attachResetListener = function(uniqueID) {
+    document.getElementById('reset-' + uniqueID).addEventListener('click', function() {
+      cat.setClickTotal(0);
+      cat.updateVisibleTotal(uniqueID);
+    });
+  }
+  cat.setClickTotal = function(clicks) {
+    cat.clicks = clicks !== undefined ? clicks : cat.clicks;
+    localStorage.setItem(cat.settings.name, cat.clicks);
+  }
+  cat.updateVisibleTotal = function(uniqueID) {
+    var counter = document.getElementById('counter-' + uniqueID);
+    counter.textContent = cat.clicks;
+  }
+}
+
+var cat = new catClicker({
+  name: 'Tiddles',
+  image: './images/kitten.jpg'
+});
+cat.init();
+
+var cat2 = new catClicker({
+  name: 'Twiddles',
+  image: './images/kitten2.jpg'
+});
+cat2.init();
 
 </pre>
 <script src="./javascripts/vendor/handlebars.min.js"></script>
