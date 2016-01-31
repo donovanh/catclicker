@@ -13,94 +13,7 @@
     <div id="cats"></div>
   </div>
 <pre>
-var compileTemplate = function(id) {
-  var source = document.getElementById(id).innerHTML;
-  return Handlebars.compile(source);
-}
 
-var CatClicker = function(settings) {
-  // Initiate some defaults, overridden by the settings object
-  var self = this;
-  self.clicks = 0;
-  self.uniqueID = 'cat-' + Math.ceil(Math.random() * 100000000);;
-  self.settings = settings;
-  self.init = function() {
-    // Set up a local stored value for the individual cat
-    // Generate a unique ID for it first
-    var catName = self.settings.name;
-    var catImage = self.settings.image;
-    var uniqueID = self.uniqueID;
-    self.clicks = parseInt(self.getCurrentClicks(catName));
-    self.displayTemplate('cats', {uniqueID, catName, catImage, currentClicks: self.clicks});
-    // Attach a listener
-    self.updateVisibleTotal(uniqueID);
-  }
-  self.getCurrentClicks = function(catName) {
-    if (localStorage.getItem(catName) === null) {
-      localStorage.setItem(catName, 0);
-      return 0;
-    } else {
-      return localStorage.getItem(catName);
-    }
-  }
-  self.displayTemplate = function(containerID, params) {
-    var catTemplate = self.settings.template;
-    var catHTML = catTemplate(params);
-    document.getElementById(containerID).innerHTML += catHTML;
-  }
-  self.attachClickListener = function(uniqueID) {
-    var catImage = document.getElementById('image-' + uniqueID);
-    catImage.addEventListener('click', (function(selfCopy) {
-      return function() {
-        selfCopy.clicks++;
-        selfCopy.setClickTotal(selfCopy.clicks);
-        selfCopy.updateVisibleTotal(selfCopy.uniqueID);
-      };
-    })(this), false);
-  }
-  self.attachResetListener = function(uniqueID) {
-    document.getElementById('reset-' + uniqueID).addEventListener('click', function() {
-      self.setClickTotal(0);
-      self.updateVisibleTotal(uniqueID);
-    });
-  }
-  self.setClickTotal = function(clicks) {
-    self.clicks = clicks !== undefined ? clicks : self.clicks;
-    localStorage.setItem(self.settings.name, self.clicks);
-  }
-  self.updateVisibleTotal = function(uniqueID) {
-    var counter = document.getElementById('counter-' + uniqueID);
-    counter.textContent = self.clicks;
-  }
-}
-
-
-// Compile the handlebars template
-var compiledTemplate = compileTemplate('cat-template');
-
-var aCats = [
-  {
-    name: 'Tiddles',
-    image: './images/kitten.jpg',
-    template: compiledTemplate
-  },
-  {
-    name: 'Twiddles',
-    image: './images/kitten2.jpg',
-    template: compiledTemplate
-  }
-];
-
-aCats.forEach(function(cat) {
-  var newCatClicker = new CatClicker(cat);
-  newCatClicker.init();
-  // Hack: I'm not sure why but the listeners only work on all elements if they're added slightly later - this doesn't feel like a sensible solution
-  setTimeout(function() {
-    newCatClicker.attachClickListener(newCatClicker.uniqueID);
-    newCatClicker.attachResetListener(newCatClicker.uniqueID);
-  }, 10);
-
-});
 </pre>
 <script src="./javascripts/vendor/handlebars.min.js"></script>
 <script id="cat-template" type="text/x-handlebars-template">
@@ -119,50 +32,59 @@ aCats.forEach(function(cat) {
   - Each with their own name
   - Counting their clicks independently
 */
-var compileTemplate = function(id) {
-  var source = document.getElementById(id).innerHTML;
-  return Handlebars.compile(source);
-}
-
+// A catClicker class
 var CatClicker = function(settings) {
   // Initiate some defaults, overridden by the settings object
   var self = this;
   self.clicks = 0;
-  self.uniqueID = 'cat-' + Math.ceil(Math.random() * 100000000);;
-  self.settings = settings;
+  self.uniqueID = '';
+  self.settings = settings || {
+    name: 'No Name :`(',
+    image: 'https://placeimg.com/640/480/animals'
+  };
+  self.compileTemplate = function(id) {
+    var source = document.getElementById(id).innerHTML;
+    return Handlebars.compile(source);
+  }
+  self.compiledTemplate = self.compileTemplate('cat-template');
   self.init = function() {
     // Set up a local stored value for the individual cat
     // Generate a unique ID for it first
     var catName = self.settings.name;
     var catImage = self.settings.image;
-    var uniqueID = self.uniqueID;
-    self.clicks = parseInt(self.getCurrentClicks(catName));
-    self.displayTemplate('cats', {uniqueID, catName, catImage, currentClicks: self.clicks});
+    // For sake of experimenting, start with a number betwee 1 and a large number
+    var uniqueID = 'cat-' + Math.ceil(Math.random() * 100000000);
+    self.uniqueID = uniqueID;
+    if (localStorage.getItem(catName) === null) {
+      // Initiate the clicker
+      localStorage.setItem(catName, 0);
+    } else {
+      // Update the visible counter
+      self.clicks = localStorage.getItem(catName);
+    }
+    // Display the template
+    var currentClicks = self.clicks;
+    self.displayTemplate('cats', {uniqueID, catName, catImage, currentClicks});
     // Attach a listener
     self.updateVisibleTotal(uniqueID);
-  }
-  self.getCurrentClicks = function(catName) {
-    if (localStorage.getItem(catName) === null) {
-      localStorage.setItem(catName, 0);
-      return 0;
-    } else {
-      return localStorage.getItem(catName);
-    }
+    setTimeout(function() {
+      self.attachClickListener(uniqueID);
+      self.attachResetListener(uniqueID);
+    }, 0);
   }
   self.displayTemplate = function(containerID, params) {
-    var catTemplate = self.settings.template;
+    var catTemplate = self.compiledTemplate;
     var catHTML = catTemplate(params);
     document.getElementById(containerID).innerHTML += catHTML;
   }
   self.attachClickListener = function(uniqueID) {
     var catImage = document.getElementById('image-' + uniqueID);
-    catImage.addEventListener('click', (function(selfCopy) {
-      return function() {
-        selfCopy.clicks++;
-        selfCopy.setClickTotal(selfCopy.clicks);
-        selfCopy.updateVisibleTotal(selfCopy.uniqueID);
-      };
-    })(this), false);
+    catImage.addEventListener('click', self.updateClicks, false);
+  }
+  self.updateClicks = function() {
+    self.clicks++;
+    self.setClickTotal(self.clicks);
+    self.updateVisibleTotal(self.uniqueID);
   }
   self.attachResetListener = function(uniqueID) {
     document.getElementById('reset-' + uniqueID).addEventListener('click', function() {
@@ -180,33 +102,17 @@ var CatClicker = function(settings) {
   }
 }
 
-
-// Compile the handlebars template
-var compiledTemplate = compileTemplate('cat-template');
-
-var aCats = [
-  {
-    name: 'Tiddles',
-    image: './images/kitten.jpg',
-    template: compiledTemplate
-  },
-  {
-    name: 'Twiddles',
-    image: './images/kitten2.jpg',
-    template: compiledTemplate
-  }
-];
-
-aCats.forEach(function(cat) {
-  var newCatClicker = new CatClicker(cat);
-  newCatClicker.init();
-  // Hack: I'm not sure why but the listeners only work on all elements if they're added slightly later - this doesn't feel like a sensible solution
-  setTimeout(function() {
-    newCatClicker.attachClickListener(newCatClicker.uniqueID);
-    newCatClicker.attachResetListener(newCatClicker.uniqueID);
-  }, 10);
-
+var c1 = new CatClicker({
+  name: 'Tiddles',
+  image: './images/kitten.jpg'
 });
+c1.init();
+
+var c2 = new CatClicker({
+  name: 'Twiddles',
+  image: './images/kitten2.jpg'
+});
+c2.init();
 
 </script>
 </body>
