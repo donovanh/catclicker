@@ -19,14 +19,25 @@ body {
   width: 400px;
 }
 
-.cat {
+.v3 .cat {
   display: none;
+}
+
+.cat {
   width: 100%;
   position: relative;
 
   &.show {
     display: block;
   }
+}
+
+.v2 .cats {
+  width: 100%;
+}
+.v2 .cat, .v1 .cat {
+  display: inline-block;
+  width: 390px;
 }
 
 aside {

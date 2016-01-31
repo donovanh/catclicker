@@ -17,12 +17,21 @@ body {
 .cats {
   width: 400px; }
 
+.v3 .cat {
+  display: none; }
+
 .cat {
-  display: none;
   width: 100%;
   position: relative; }
   .cat.show {
     display: block; }
+
+.v2 .cats {
+  width: 100%; }
+
+.v2 .cat, .v1 .cat {
+  display: inline-block;
+  width: 390px; }
 
 aside {
   width: 200px;
