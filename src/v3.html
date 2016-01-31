@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge, chrome=1">
+  <title>Cat Clicker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="stylesheets/screen.css">
+</head>
+<body>
+  <div class="container">
+    <h1><a href="./">Click the cat</a></h1>
+    <div class="content">
+      <aside>
+        <ul id="cat-menu"></ul>
+      </aside>
+      <div id="cats"></div>
+    </div>
+  </div>
+<pre>
+
+</pre>
+<script src="./javascripts/vendor/handlebars.min.js"></script>
+<script id="cat-template" type="text/x-handlebars-template">
+  <div class="cat" id="{{uniqueID}}">
+    <h2 id="cat-name">{{catName}}</h2>
+    <img id="image-{{uniqueID}}" src="{{catImage}}" width="100%">
+    <p class="counter" id="counter-{{uniqueID}}">{{currentClicks}}</p>
+    <p id="reset-{{uniqueID}}">Reset</p>
+  </div>
+</script>
+
+<script>
+// Requirements updated:
+/*
+  - Menu of 5+ cats
+  - Clicking on the list shows that cat plus counter
+  - Clicking cat increments counter
+*/
+var compileTemplate = function(id) {
+  var source = document.getElementById(id).innerHTML;
+  return Handlebars.compile(source);
+}
+
+var CatClicker = function(settings) {
+  // Initiate some defaults, overridden by the settings object
+  var self = this;
+  self.clicks = 0;
+  self.uniqueID = 'cat-' + Math.ceil(Math.random() * 100000000);;
+  self.settings = settings;
+  self.init = function() {
+    // Set up a local stored value for the individual cat
+    // Generate a unique ID for it first
+    var catName = self.settings.name;
+    var catImage = self.settings.image;
+    var uniqueID = self.uniqueID;
+    self.clicks = parseInt(self.getCurrentClicks(catName));
+    self.displayTemplate('cats', {uniqueID, catName, catImage, currentClicks: self.clicks});
+    // Attach a listener
+    self.updateVisibleTotal(uniqueID);
+  }
+  self.getCurrentClicks = function(catName) {
+    if (localStorage.getItem(catName) === null) {
+      localStorage.setItem(catName, 0);
+      return 0;
+    } else {
+      return localStorage.getItem(catName);
+    }
+  }
+  self.displayTemplate = function(containerID, params) {
+    var catTemplate = self.settings.template;
+    var catHTML = catTemplate(params);
+    document.getElementById(containerID).innerHTML += catHTML;
+  }
+  self.attachClickListener = function(uniqueID) {
+    var catImage = document.getElementById('image-' + uniqueID);
+    catImage.addEventListener('click', (function(selfCopy) {
+      return function() {
+        selfCopy.clicks++;
+        selfCopy.setClickTotal(selfCopy.clicks);
+        selfCopy.updateVisibleTotal(selfCopy.uniqueID);
+      };
+    })(this), false);
+  }
+  self.attachResetListener = function(uniqueID) {
+    document.getElementById('reset-' + uniqueID).addEventListener('click', function() {
+      self.setClickTotal(0);
+      self.updateVisibleTotal(uniqueID);
+    });
+  }
+  self.setClickTotal = function(clicks) {
+    self.clicks = clicks !== undefined ? clicks : self.clicks;
+    localStorage.setItem(self.settings.name, self.clicks);
+  }
+  self.updateVisibleTotal = function(uniqueID) {
+    var counter = document.getElementById('counter-' + uniqueID);
+    counter.textContent = self.clicks;
+  }
+}
+
+
+// Compile the handlebars template
+var compiledTemplate = compileTemplate('cat-template');
+
+var aCats = [
+  {
+    name: 'Tiddles',
+    image: './images/kitten.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Twiddles',
+    image: './images/kitten2.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Buddies',
+    image: './images/buddies.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Bunny',
+    image: './images/bunny.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Burrito',
+    image: './images/burrito.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Snoopy',
+    image: './images/snoopy.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Tiny',
+    image: './images/tiny.jpg',
+    template: compiledTemplate
+  },
+  {
+    name: 'Twins',
+    image: './images/twins.jpg',
+    template: compiledTemplate
+  }
+];
+
+aCats.forEach(function(cat) {
+  // Build the cats themselves
+  var newCatClicker = new CatClicker(cat);
+  newCatClicker.init();
+  // Hack: I'm not sure why but the listeners only work on all elements if they're added slightly later - this doesn't feel like a sensible solution
+  setTimeout(function() {
+    newCatClicker.attachClickListener(newCatClicker.uniqueID);
+    newCatClicker.attachResetListener(newCatClicker.uniqueID);
+  }, 10);
+
+  // Build the menu links
+  // <li><a href="#">Cat 1</a></li>
+  // Append into <ul id="cat-menu">
+  var li = document.createElement('li');
+  li.innerHTML = cat.name;
+  li.addEventListener('click', (function(thisCatClicker) {
+    return function() {
+      showCat(thisCatClicker.uniqueID);
+    };
+  })(newCatClicker));
+  var ul = document.getElementById('cat-menu');
+  ul.appendChild(li);
+});
+
+function showCat(id) {
+  var aCats = document.getElementsByClassName('cat');
+  aCats = Array.prototype.slice.call(aCats);
+  aCats.forEach(function(cat) {
+    if (cat.id === id) {
+      // Show
+      cat.className = 'cat show';
+    } else {
+      // Hide
+      cat.className = 'cat';
+    }
+  });
+}
+
+</script>
+</body>
+</html>

@@ -11,10 +11,37 @@ body {
   margin: 2em auto;
 }
 
+.content {
+  display: flex;
+}
+
+.cats {
+  width: 400px;
+}
+
 .cat {
-  display: inline-block;
-  width: 396px;
+  display: none;
+  width: 100%;
   position: relative;
+
+  &.show {
+    display: block;
+  }
+}
+
+aside {
+  width: 200px;
+  display: inline-block;
+}
+
+aside li {
+  font-size: 18px;
+  line-height: 24px;
+  cursor: pointer;
+
+  &:hover {
+    color: red;
+  }
 }
 
 img, p {
