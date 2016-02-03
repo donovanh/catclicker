@@ -283,7 +283,6 @@
         init: function() {
             // Prepare compiled cat template
             this.catTemplate = catView.compileTemplate('cat-template');
-            this.catContainer = document.getElementById('cats');
         },
         compileTemplate: function(id) {
             var source = document.getElementById(id).innerHTML;
@@ -296,7 +295,7 @@
                 image: cat.image,
                 count: cat.count
             });
-            this.catContainer.innerHTML = catHTML;
+            document.getElementById('cats').innerHTML = catHTML;
             octopus.attachClickListener('.cat img', function(e) {
                 octopus.incrementCount(index);
             });
