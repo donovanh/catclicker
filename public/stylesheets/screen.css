@@ -33,6 +33,9 @@ body {
   display: inline-block;
   width: 390px; }
 
+.v5 ul {
+  width: 280px; }
+
 aside {
   width: 200px;
   display: inline-block; }
