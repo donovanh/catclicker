@@ -79,7 +79,7 @@ gulp.task('browser-sync', ['styles', 'scripts'], function() {
   });
 });
 
-gulp.task('deploy', function() {
+gulp.task('publish', function() {
   return gulp.src('./_build/**/*')
     .pipe(ghPages());
 });
