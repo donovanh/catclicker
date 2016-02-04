@@ -31,7 +31,7 @@
 </script>
 
 <script>
-// Cat Module - as a self-executing function
+// Adding "Admin mode"
 (function() {
     var model = {
         currentCat: 0,
@@ -80,28 +80,9 @@
         ],
         init: function() {
             // Store Cats in localstorage
-            if (!localStorage.cats) {
+            if (!localStorage.cats || localStorage.cats === '[]') {
                 localStorage.cats = JSON.stringify(model.aCats);
             }
-        },
-        add: function(obj) {
-            var data = model.getAllCats();
-            data.push(obj);
-            localStorage.cats = JSON.stringify(data);
-        },
-        getAllCats: function() {
-            return JSON.parse(localStorage.cats);
-        },
-        incrementCount: function() {
-            var cats = model.getAllCats();
-            cats[model.currentCat].count++;
-            localStorage.cats = JSON.stringify(cats);
-            return cats[model.currentCat].count
-        },
-        resetCount: function() {
-            var cats = model.getAllCats();
-            cats[model.currentCat].count = 0;
-            localStorage.cats = JSON.stringify(cats);
         }
     };
 
@@ -155,7 +136,7 @@
 
     var octopus = {
         getAllCats: function() {
-            return model.getAllCats();
+            return JSON.parse(localStorage.cats);
         },
         getCurrentCat: function() {
             return this.getAllCats()[model.currentCat];
@@ -168,11 +149,16 @@
             document.querySelector(selector).addEventListener('click', f);
         },
         incrementCount: function() {
-            var newCount = model.incrementCount();
-            catView.updateCounter(newCount);
+            var cats = octopus.getAllCats();
+            var currentCat = cats[model.currentCat];
+            currentCat.count++;
+            localStorage.cats = JSON.stringify(cats);
+            catView.updateCounter(currentCat.count);
         },
         resetCount: function() {
-            model.resetCount();
+            var cats = octopus.getAllCats();
+            cats[model.currentCat].count = 0;
+            localStorage.cats = JSON.stringify(cats);
             catView.updateCounter(0);
         },
         init: function() {
