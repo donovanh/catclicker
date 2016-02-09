@@ -27,11 +27,24 @@
     <img src="{{image}}" width="100%">
     <p class="counter">{{count}}</p>
     <p class="reset">Reset</p>
+    <button id="show-admin">Admin</button>
+    <div id="admin"></div>
   </div>
 </script>
 
+<script id="admin-template" type="text/x-handlebars-template">
+  <h3>Name</h3>
+  <input type="text" name="name" value="{{name}}">
+  <h3>Image URL</h3>
+  <input type="text" name="image" value="{{image}}">
+  <h3>Count</h3>
+  <input type="number" name="count" value="{{count}}">
+  <button id="cancel">Cancel</button>
+  <button id="save">Save</button>
+</script>
+
 <script>
-// Adding "Admin mode"
+// Adding "Admin mode" (click the admin button to edit an individual item)
 (function() {
     var model = {
         currentCat: 0,
@@ -108,11 +121,7 @@
     var catView = {
         init: function() {
             // Prepare compiled cat template
-            this.catTemplate = catView.compileTemplate('cat-template');
-        },
-        compileTemplate: function(id) {
-            var source = document.getElementById(id).innerHTML;
-            return Handlebars.compile(source);
+            this.catTemplate = octopus.compileTemplate('cat-template');
         },
         render: function() {
             var cat = octopus.getCurrentCat();
@@ -128,13 +137,41 @@
             octopus.attachClickListener('.reset', function(e) {
                 octopus.resetCount();
             });
+            octopus.attachClickListener('#show-admin', function(e) {
+                octopus.showAdmin();
+            });
         },
         updateCounter: function(newCount) {
             document.querySelector('.counter').innerHTML = newCount;
         }
-    }
+    };
+
+    var adminView = {
+        init: function() {
+            adminView.template = octopus.compileTemplate('admin-template');
+        },
+        render: function(adminHTML) {
+            document.getElementById('admin').innerHTML = adminHTML;
+            // Attach listeners on the cancel and save buttons
+            octopus.attachClickListener('#cancel', function(e) {
+                octopus.cancelAdmin();
+            });
+            octopus.attachClickListener('#save', function(e) {
+                octopus.saveAdmin();
+            });
+        },
+        destroyAdmin: function() {
+            document.getElementById('admin').innerHTML = '';
+        }
+    };
 
     var octopus = {
+        init: function() {
+            model.init();
+            listView.init();
+            catView.init();
+            adminView.init();
+        },
         getAllCats: function() {
             return JSON.parse(localStorage.cats);
         },
@@ -145,14 +182,21 @@
             model.currentCat = index;
             catView.render();
         },
+        saveCats: function(cats) {
+            localStorage.cats = JSON.stringify(cats);
+        },
         attachClickListener: function(selector, f) {
             document.querySelector(selector).addEventListener('click', f);
+        },
+        compileTemplate: function(id) {
+            var source = document.getElementById(id).innerHTML;
+            return Handlebars.compile(source);
         },
         incrementCount: function() {
             var cats = octopus.getAllCats();
             var currentCat = cats[model.currentCat];
             currentCat.count++;
-            localStorage.cats = JSON.stringify(cats);
+            octopus.saveCats(cats);
             catView.updateCounter(currentCat.count);
         },
         resetCount: function() {
@@ -161,10 +205,30 @@
             localStorage.cats = JSON.stringify(cats);
             catView.updateCounter(0);
         },
-        init: function() {
-            model.init();
-            listView.init();
-            catView.init();
+        showAdmin: function() {
+            var currentCat = octopus.getCurrentCat();
+            var adminHTML = adminView.template({
+                name: currentCat.name,
+                image: currentCat.image,
+                count: currentCat.count
+            });
+            adminView.render(adminHTML);
+        },
+        cancelAdmin: function() {
+            adminView.destroyAdmin();
+        },
+        saveAdmin: function() {
+            // Save the values to the cat object
+            var cats = octopus.getAllCats();
+            cats[model.currentCat] = {
+                name: document.querySelector('input[name=name]').value,
+                image: document.querySelector('input[name=image]').value,
+                count: document.querySelector('input[name=count]').value
+            };
+            octopus.saveCats(cats);
+            // Re-render the cat view (without admin)
+            catView.render();
+            listView.render();
         }
     };
 
